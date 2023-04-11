@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Library Management System</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f7f7f7;
+      }
+      form {
+        margin-top: 40px;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 500px;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        display: none;
+      }
+      form h2 {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 30px;
+        color: #333;
+      }
+      label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 18px;
+        color: #333;
+      }
+      input[type="submit"] {
+        display: block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 18px;
+        color: #fff;
+        background-color: #333;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      input[type="submit"]:hover {
+        background-color: #666;
+      }
+      .navbar {
+        background-color: #333;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+      }
+      .navbar-link {
+        color: #fff;
+        text-decoration: none;
+        margin-left: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        transition: all 0.2s ease-in-out;
+      }
+
+      .navbar-link:hover {
+        background-color: #555;
+      }
+
+      .active {
+        background-color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="#read-data" class="navbar-link active">Read Data</a>
+      <a href="#search-book" class="navbar-link">Search Book</a>
+      <a href="#sort-book-magazine" class="navbar-link">Sort Book/Magazine</a>
+      <a href="#add-book-magazine" class="navbar-link">Add Book/Magazine</a>
+    </nav>
+
+    <form id="read-data" style="display: block">
+      <h2>Read Data from CSV</h2>
+      <label for="source">Select source:</label>
+      <select name="source" id="source">
+        <option value="books">Books</option>
+        <option value="magazines">Magazines</option>
+        <option value="authors">Authors</option>
+      </select>
+      <input type="submit" value="Read" />
+    </form>
+
+    <form id="search-book">
+      <h2>Search Book/Magazine</h2>
+      <label for="search_criteria">Search by:</label>
+      <input
+        type="radio"
+        id="isbn"
+        name="search_criteria"
+        value="isbn"
+        checked
+      />
+      <label for="isbn">ISBN</label>
+      <input
+        type="radio"
+        id="author_email"
+        name="search_criteria"
+        value="author_email"
+      />
+      <label for="author_email">Author's Email</label>
+      <br />
+      <label for="query">Query:</label>
+      <input type="text" id="query" name="query" />
+      <br />
+      <input type="submit" value="Search" />
+      <br />
+      <div id="results"></div>
+    </form>
+
+    <form id="sort-book-magazine">
+      <h2>Sort Books and Magazines</h2>
+      <input type="submit" value="Sort Books and Magazines" />
+    </form>
+
+    <form id="add-book-magazine">
+      <h2>Add Book/Magazine</h2>
+      <label for="type">Type:</label>
+      <select name="type" id="type">
+        <option value="book">Book</option>
+        <option value="magazine">Magazine</option>
+      </select>
+      <label for="title">Title:</label>
+      <input type="text" name="title" id="title" />
+      <label for="isbn">ISBN:</label>
+      <input type="text" name="isbn" id="isbn" />
+      <label for="author-email">Author's Email:</label>
+      <input type="email" name="author-email" id="author-email" />
+      <div id="description-wrapper">
+        <label for="description">Description:</label>
+        <textarea name="description" id="description"></textarea>
+      </div>
+      <div id="published-at-wrapper" style="display: none">
+        <label for="published-at">Published At:</label>
+        <input type="date" name="published-at" id="published-at" />
+      </div>
+      <input type="submit" value="Add" />
+    </form>
+  </body>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    // Get the forms and navigation links
+    var readDataForm = document.getElementById("read-data");
+    var searchBookForm = document.getElementById("search-book");
+    var addBookForm = document.getElementById("add-book-magazine");
+    var sortBookForm = document.getElementById("sort-book-magazine");
+    var navLinks = document.querySelectorAll("nav a");
+
+    const typeSelect = document.querySelector("#type");
+    const descriptionWrapper = document.querySelector("#description-wrapper");
+    const publishedAtWrapper = document.querySelector("#published-at-wrapper");
+
+    // Show the first form by default
+    readDataForm.style.display = "block";
+
+    // Add click event listeners to the navigation links
+    for (var i = 0; i < navLinks.length; i++) {
+      navLinks[i].addEventListener("click", function (event) {
+        event.preventDefault();
+        // Hide all forms
+        readDataForm.style.display = "none";
+        searchBookForm.style.display = "none";
+        addBookForm.style.display = "none";
+        sortBookForm.style.display = "none";
+
+        // Show the selected form
+        var formId = this.getAttribute("href").substring(1);
+        console.log(formId);
+        const forms = document.querySelectorAll("form");
+        document.getElementById(formId).style.display = "block";
+
+        // Set the active link
+        for (var j = 0; j < navLinks.length; j++) {
+          navLinks[j].classList.remove("active");
+        }
+        this.classList.add("active");
+        // set the active form
+        forms.forEach((form) => {
+          form.classList.remove("active");
+        });
+        document.getElementById(formId).classList.add("active-form");
+      });
+    }
+    
+    // Show/hide the 'Description' and 'Published At' fields based on the selected option
+    typeSelect.addEventListener("change", () => {
+      const activeForm = document.querySelector(".active-form");
+
+      if (!activeForm) {
+        console.log("could not find active form");
+        return;
+      }
+
+      if (activeForm.id === "add-book-magazine") {
+        if (typeSelect.value === "book") {
+          descriptionWrapper.style.display = "block";
+          publishedAtWrapper.style.display = "none";
+        } else if (typeSelect.value === "magazine") {
+          descriptionWrapper.style.display = "none";
+          publishedAtWrapper.style.display = "block";
+        }
+      }
+    });
+
+    const baseUrl = "http://localhost:3000";
+    // Add submit event listeners to each form
+    readDataForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const csvSource = readDataForm.elements.source.value; // get selected CSV source
+
+      axios
+        .get(`${baseUrl}/read-csv?csvSource=${csvSource}`)
+        .then((response) => {
+          console.log(`${csvSource} data:`, response.data);
+          // do something with the CSV data (e.g. display it on the page)
+        })
+        .catch((error) => {
+          console.error("Error reading CSV:", error);
+        });
+    });
+
+    searchBookForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const searchCriteria = document.querySelector(
+        'input[name="search_criteria"]:checked'
+      ).value;
+      const query = document.getElementById("query").value;
+      console.log(searchCriteria);
+      console.log(query);
+
+      axios
+        .get(`${baseUrl}/search`, {
+          params: {
+            search_criteria: searchCriteria,
+            query: query,
+          },
+        })
+        .then((response) => {
+          const results = response.data;
+          console.log(results);
+          const resultsDiv = document.getElementById("results");
+          resultsDiv.innerHTML = "";
+          for (let i = 0; i < results.length; i++) {
+            const book = results[i];
+            const bookDiv = document.createElement("div");
+            bookDiv.innerHTML = `Title: ${book.title}<br>ISBN: ${book.isbn}<br>Author's Email: ${book.authorEmail}<br><br>`;
+            resultsDiv.appendChild(bookDiv);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+
+    sortBookForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+        // send request to server to sort books and magazines
+        const response = await axios.post(`${baseUrl}/sort`);
+
+        if (response.status === 200) {
+          // display sorted results on page
+          const sortedResults = response.data;
+          console.log(sortedResults); 
+        } else {
+          console.error(`Error sorting books and magazines: ${response.status}`);
+        }
+      } catch (error) {
+        console.error(`Error sorting books and magazines: ${error}`);
+      }
+    });
+
+    addBookForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title = addBookForm.elements["title"].value;
+      const isbn = addBookForm.elements["isbn"].value;
+      const authorEmail = addBookForm.elements["author-email"].value;
+      const type = addBookForm.elements["type"].value;
+      let data = {
+        title,
+        isbn,
+        authorEmail,
+        type,
+      };
+      if (type === "book") {
+        const description = addBookForm.elements["description"].value;
+        data.description = description;
+        data.publishedAt = null;
+      } else if (type === "magazine") {
+        const publishedAt = addBookForm.elements["published-at"].value;
+        data.publishedAt = publishedAt;
+        data.description = null;
+      }
+      console.log(data);
+      axios
+        .post(`${baseUrl}/add-book-magazine`, data)
+        .then((response) => {
+          console.log(response.data);
+          alert("Book/Magazine added successfully!");
+        })
+        .catch((error) => {
+          console.log(error.response.data);
+          alert("Error adding Book/Magazine!");
+        });
+    });
+  </script>
+</html>
